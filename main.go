@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	_ "image/png"
 	"log"
@@ -21,15 +21,12 @@ func init() {
 		log.Fatal(err)
 	}
 
-	buttons, err = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
-	if err != nil {
-		log.Fatal(err)
-	}
+	buttons = ebiten.NewImageFromImage(img)
 }
 
 type Game struct{}
 
-func (g *Game) Update(screen *ebiten.Image) error {
+func (g *Game) Update() error {
 	return nil
 }
 
