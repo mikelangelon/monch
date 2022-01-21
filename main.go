@@ -40,28 +40,32 @@ func initGame() {
 }
 
 type app struct {
-	game Game
+	currentScreen screen
 }
 
 func (a *app) Update() error {
-	return a.game.Update()
+	return a.currentScreen.Update()
 }
 
 func (a *app) Draw(screen *ebiten.Image) {
-	a.game.Draw(screen)
+	a.currentScreen.Draw(screen)
 }
 
 func (a *app) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
+func (a *app) changeScreen(s screen) {
+	a.currentScreen = s
+}
+
 func main() {
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Hello World!")
 
-	if err := ebiten.RunGame(&app{
-		game: Game{turn: playerTurn},
-	}); err != nil {
+	app := &app{}
+	app.currentScreen = &menu{changeScreen: app.changeScreen}
+	if err := ebiten.RunGame(app); err != nil {
 		panic(err)
 	}
 }
