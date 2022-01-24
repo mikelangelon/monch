@@ -1,14 +1,15 @@
 package main
 
 import (
+	"github.com/fogleman/gg"
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
+	"golang.org/x/image/font/gofont/goregular"
 	"image/color"
-	"log"
+	"time"
 )
+
+var backgroundColor color.Color = color.RGBA{R: 0x64, G: 0x95, B: 0x24, A: 0xee}
 
 const (
 	title   = "3 cards"
@@ -16,50 +17,68 @@ const (
 )
 
 var (
-	mplusNormalFont font.Face
-	mplusTitleFont  font.Face
+	selected    = 0
+	lastClickAt time.Time
 )
-
-func init() {
-	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	const dpi = 72
-	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    24,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	mplusTitleFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    48,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 type menu struct {
 	changeScreen func(s screen)
 }
 
 func (m *menu) Update() error {
+	if time.Now().Sub(lastClickAt) < debouncer {
+		return nil
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+		lastClickAt = time.Now()
+		selected--
+		selected = selected % 3
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+		lastClickAt = time.Now()
+		selected++
+		selected = selected % 3
+	}
 	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
-		initGame()
-		g := &Game{turn: playerTurn}
-		g.Restart()
-		m.changeScreen(g)
+		switch selected {
+		case 0:
+			initGame()
+			g := &Game{turn: playerTurn}
+			g.Restart()
+			m.changeScreen(g)
+		}
+
 	}
 	return nil
 }
 
 func (m *menu) Draw(screen *ebiten.Image) {
-	text.Draw(screen, command, mplusNormalFont, 40, 150, color.White)
-	text.Draw(screen, title, mplusTitleFont, 100, 80, color.Gray16{0x4444})
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(0), float64(160))
+	screen.DrawImage(createMenuImage(), op)
+}
+
+func createMenuImage() *ebiten.Image {
+	dc := gg.NewContext(screenWidth, screenHeight)
+	dc.SetRGB(112, 98, 200)
+	dc.DrawRectangle(100, 0, screenWidth-200, 50)
+	dc.DrawRectangle(100, 50+30, screenWidth-200, 50)
+	dc.DrawRectangle(100, 50*2+30*2, screenWidth-200, 50)
+	dc.Fill()
+	dc.SetRGB(229, 227, 0)
+	dc.DrawRectangle(120, float64(50*selected)+float64(30*selected)+5, screenWidth-240, 40)
+	dc.Fill()
+	dc.SetRGB(112, 223, 200)
+	font, err := truetype.Parse(goregular.TTF)
+	if err != nil {
+		panic(err)
+	}
+	face := truetype.NewFace(font, &truetype.Options{
+		Size: 40,
+	})
+	dc.SetFontFace(face)
+	dc.DrawStringAnchored("Start", screenWidth/2, 20, 0.5, 0.5)
+	dc.DrawStringAnchored("Challenges", screenWidth/2, 20+50+30, 0.5, 0.5)
+	dc.DrawStringAnchored("Exit", screenWidth/2, 20+50*2+30*2, 0.5, 0.5)
+	return ebiten.NewImageFromImage(dc.Image())
 }

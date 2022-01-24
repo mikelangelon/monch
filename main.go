@@ -16,6 +16,11 @@ var coins *ebiten.Image
 var buttons *ebiten.Image
 var cards *ebiten.Image
 
+const (
+	screenWidth  = 640
+	screenHeight = 480
+)
+
 var (
 	d      *deck
 	player *hand
@@ -60,7 +65,7 @@ func (a *app) changeScreen(s screen) {
 }
 
 func main() {
-	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Hello World!")
 
 	app := &app{}
