@@ -12,15 +12,18 @@ import (
 type Game struct {
 	lastClickAt  time.Time
 	lastCPU      time.Time
-	turn         string
+	state        state
 	playerPoints int64
 	cpuPoints    int64
 }
 
+type state string
+
 const (
-	cpuTurn    = "cpu"
-	playerTurn = "player"
-	endTurn    = "end"
+	cpuTurn    state = "cpu"
+	playerTurn state = "player"
+	endTurn    state = "turnEnd"
+	endGame    state = "end"
 )
 
 const debouncer = 150 * time.Millisecond
@@ -29,11 +32,12 @@ func (g *Game) Restart() {
 	g.lastClickAt = time.Now()
 	g.playerPoints = 0
 	g.cpuPoints = 0
-	g.turn = playerTurn
+	g.state = playerTurn
 }
+
 func (g *Game) Update() error {
 
-	switch g.turn {
+	switch g.state {
 	case playerTurn:
 		if time.Since(g.lastClickAt) < debouncer {
 			return nil
@@ -49,7 +53,7 @@ func (g *Game) Update() error {
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			log.Printf("selecting card with number %d", player.selected.number)
 
-			g.turn = cpuTurn
+			g.state = cpuTurn
 			g.lastCPU = time.Now()
 			g.lastClickAt = time.Now()
 		}
@@ -61,27 +65,29 @@ func (g *Game) Update() error {
 			selected.covered = false
 			rival.selected = selected
 
-			// Check who wins this match
-			if rival.selected.number > player.selected.number {
-				g.cpuPoints++
-			} else {
-				g.playerPoints++
-			}
-			// use selected cards
-			log.Println(player.selected.number)
-			player.selected.used = true
-			player.selected = nil
-
-			rival.selected.used = true
-			rival.selected = nil
-
-			if len(player.playableCards()) == 0 {
-				g.turn = endTurn
-			} else {
-				g.turn = playerTurn
-			}
+			g.state = endTurn
 		}
 	case endTurn:
+		// Check who wins this match
+		if rival.selected.number > player.selected.number {
+			g.cpuPoints++
+		} else {
+			g.playerPoints++
+		}
+		// use selected cards
+		log.Println(player.selected.number)
+		player.selected.used = true
+		player.selected = nil
+
+		rival.selected.used = true
+		rival.selected = nil
+
+		if len(player.playableCards()) == 0 {
+			g.state = endGame
+		} else {
+			g.state = playerTurn
+		}
+	case endGame:
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			initGame()
 			g.Restart()
@@ -118,5 +124,5 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("%d", len(d.cards)))
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("Player: %d vs CPU: %d - turn %s", g.playerPoints, g.cpuPoints, g.turn))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("Player: %d vs CPU: %d - state %s", g.playerPoints, g.cpuPoints, g.state))
 }

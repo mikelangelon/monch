@@ -35,7 +35,7 @@ func (m *menu) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 		if selected == 0 {
 			initGame()
-			g := &Game{turn: playerTurn}
+			g := &Game{state: playerTurn}
 			g.Restart()
 			m.changeScreen(g)
 		}
