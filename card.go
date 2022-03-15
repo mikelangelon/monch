@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	"math/rand"
 	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
@@ -39,7 +40,7 @@ func (d *hand) nextSelection() *card {
 		}
 	}
 	index++
-	index = index % len(cards)
+	index %= len(cards)
 	cards[index].selected = true
 	return cards[index]
 }

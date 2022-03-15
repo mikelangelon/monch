@@ -3,18 +3,15 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 	_ "image/png"
 	"log"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 //go:embed deck.png
 var deckImage []byte
-
-var coins *ebiten.Image
-var buttons *ebiten.Image
-var cards *ebiten.Image
 
 const (
 	screenWidth  = 640

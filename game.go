@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"log"
 	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Game struct {
-	keys         []ebiten.Key
 	lastClickAt  time.Time
 	lastCPU      time.Time
 	turn         string
@@ -35,7 +35,7 @@ func (g *Game) Update() error {
 
 	switch g.turn {
 	case playerTurn:
-		if time.Now().Sub(g.lastClickAt) < debouncer {
+		if time.Since(g.lastClickAt) < debouncer {
 			return nil
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
@@ -55,7 +55,7 @@ func (g *Game) Update() error {
 		}
 
 	case cpuTurn:
-		if time.Now().Sub(g.lastCPU) > 1*time.Second {
+		if time.Since(g.lastCPU) > 1*time.Second {
 			selected := rival.cpuSelect()
 			selected.selected = true
 			selected.covered = false
@@ -118,9 +118,5 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("%d", len(d.cards)))
-	keyStrs := []string{}
-	for _, p := range g.keys {
-		keyStrs = append(keyStrs, p.String())
-	}
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("Player: %d vs CPU: %d - turn %s", g.playerPoints, g.cpuPoints, g.turn))
 }

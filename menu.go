@@ -1,19 +1,12 @@
 package main
 
 import (
+	"time"
+
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font/gofont/goregular"
-	"image/color"
-	"time"
-)
-
-var backgroundColor color.Color = color.RGBA{R: 0x64, G: 0x95, B: 0x24, A: 0xee}
-
-const (
-	title   = "3 cards"
-	command = `Press ENTER to start the game`
 )
 
 var (
@@ -26,22 +19,21 @@ type menu struct {
 }
 
 func (m *menu) Update() error {
-	if time.Now().Sub(lastClickAt) < debouncer {
+	if time.Since(lastClickAt) < debouncer {
 		return nil
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
 		lastClickAt = time.Now()
 		selected--
-		selected = selected % 3
+		selected %= 3
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
 		lastClickAt = time.Now()
 		selected++
-		selected = selected % 3
+		selected %= 3
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
-		switch selected {
-		case 0:
+		if selected == 0 {
 			initGame()
 			g := &Game{turn: playerTurn}
 			g.Restart()
